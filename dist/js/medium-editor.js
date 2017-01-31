@@ -6512,10 +6512,15 @@ MediumEditor.extensions = {};
     }
 
     function handleBlockDeleteKeydowns(event) {
-        var p, node = MediumEditor.selection.getSelectionStart(this.options.ownerDocument),
-            tagName = node.nodeName.toLowerCase(),
+        var p, tagName, node = MediumEditor.selection.getSelectionStart(this.options.ownerDocument),
             isEmpty = /^(\s+|<br\/?>)?$/i,
             isHeader = /h\d/i;
+
+        if (!node) {
+            return;
+        }
+
+        tagName = node.nodeName.toLowerCase();
 
         if (MediumEditor.util.isKey(event, [MediumEditor.util.keyCode.BACKSPACE, MediumEditor.util.keyCode.ENTER]) &&
                 // has a preceeding sibling
