@@ -329,7 +329,7 @@
                     return -1;
                 }
                 // If the previous sibling has text, then there are no empty blocks before this
-                else if (previousSibling.nodeValue) {
+                else if (previousSibling.nodeValue || previousSibling.classList.contains('medium-insert-container')) {
                     return -1;
                 }
             }
