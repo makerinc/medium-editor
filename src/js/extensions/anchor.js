@@ -110,8 +110,8 @@
                 // figure out how to deprecate? also consider `fa-` icon default implcations.
                 template.push(
                     '<div class="medium-editor-toolbar-form-row">',
-                    '<input type="checkbox" class="medium-editor-toolbar-anchor-target">',
-                    '<label>',
+                    '<input type="checkbox" class="medium-editor-toolbar-anchor-target" id="medium-editor-toolbar-anchor-target-field-' + this.getEditorId() + '">',
+                    '<label for="medium-editor-toolbar-anchor-target-field-' + this.getEditorId() + '">',
                     this.targetCheckboxText,
                     '</label>',
                     '</div>'
@@ -231,20 +231,61 @@
             this.base.checkSelection();
         },
 
+        ensureEncodedUri: function (str) {
+            return str === decodeURI(str) ? encodeURI(str) : str;
+        },
+
+        ensureEncodedUriComponent: function (str) {
+            return str === decodeURIComponent(str) ? encodeURIComponent(str) : str;
+        },
+
+        ensureEncodedParam: function (param) {
+            var split = param.split('='),
+                key = split[0],
+                val = split[1];
+
+            return key + (val === undefined ? '' : '=' + this.ensureEncodedUriComponent(val));
+        },
+
+        ensureEncodedQuery: function (queryString) {
+            return queryString.split('&').map(this.ensureEncodedParam.bind(this)).join('&');
+        },
+
         checkLinkFormat: function (value) {
             // Matches any alphabetical characters followed by ://
             // Matches protocol relative "//"
             // Matches common external protocols "mailto:" "tel:" "maps:"
             // Matches relative hash link, begins with "#"
             var urlSchemeRegex = /^([a-z]+:)?\/\/|^(mailto|tel|maps):|^\#/i,
-            // var te is a regex for checking if the string is a telephone number
-            telRegex = /^\+?\s?\(?(?:\d\s?\-?\)?){3,20}$/;
+                hasScheme = urlSchemeRegex.test(value),
+                scheme = '',
+                // telRegex is a regex for checking if the string is a telephone number
+                telRegex = /^\+?\s?\(?(?:\d\s?\-?\)?){3,20}$/,
+                urlParts = value.match(/^(.*?)(?:\?(.*?))?(?:#(.*))?$/),
+                path = urlParts[1],
+                query = urlParts[2],
+                fragment = urlParts[3];
+
             if (telRegex.test(value)) {
                 return 'tel:' + value;
-            } else {
-                // Check for URL scheme and default to http:// if none found
-                return (urlSchemeRegex.test(value) ? '' : 'http://') + encodeURI(value);
             }
+
+            if (!hasScheme) {
+                var host = path.split('/')[0];
+                // if the host part of the path looks like a hostname
+                if (host.match(/.+(\.|:).+/) || host === 'localhost') {
+                    scheme = 'http://';
+                }
+            }
+
+            return scheme +
+                // Ensure path is encoded
+                this.ensureEncodedUri(path) +
+                // Ensure query is encoded
+                (query === undefined ? '' : '?' + this.ensureEncodedQuery(query)) +
+                // Include fragment unencoded as encodeUriComponent is too
+                // heavy handed for the many characters allowed in a fragment
+                (fragment === undefined ? '' : '#' + fragment);
         },
 
         doFormCancel: function () {

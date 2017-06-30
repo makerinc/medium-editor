@@ -223,11 +223,10 @@
         splitEndNodeIfNeeded: function (currentNode, newNode, matchEndIndex, currentTextIndex) {
             var textIndexOfEndOfFarthestNode,
                 endSplitPoint;
-            textIndexOfEndOfFarthestNode = currentTextIndex + (newNode || currentNode).nodeValue.length +
-                    (newNode ? currentNode.nodeValue.length : 0) -
-                    1;
-            endSplitPoint = (newNode || currentNode).nodeValue.length -
-                    (textIndexOfEndOfFarthestNode + 1 - matchEndIndex);
+            textIndexOfEndOfFarthestNode = currentTextIndex + currentNode.nodeValue.length +
+                    (newNode ? newNode.nodeValue.length : 0) - 1;
+            endSplitPoint = matchEndIndex - currentTextIndex -
+                    (newNode ? currentNode.nodeValue.length : 0);
             if (textIndexOfEndOfFarthestNode >= matchEndIndex &&
                     currentTextIndex !== textIndexOfEndOfFarthestNode &&
                     endSplitPoint !== 0) {
@@ -618,6 +617,11 @@
             }
         },
 
+        /*
+         * this function adds one or several classes on an a element.
+         * if el parameter is not an a, it will look for a children of el.
+         * if no a children are found, it will look for the a parent.
+         */
         addClassToAnchors: function (el, buttonClass) {
             var classes = buttonClass.split(' '),
                 i,
@@ -627,7 +631,13 @@
                     el.classList.add(classes[j]);
                 }
             } else {
-                el = el.getElementsByTagName('a');
+                var aChildren = el.getElementsByTagName('a');
+                if (aChildren.length === 0) {
+                    var parentAnchor = Util.getClosestTag(el, 'a');
+                    el = parentAnchor ? [parentAnchor] : [];
+                } else {
+                    el = aChildren;
+                }
                 for (i = 0; i < el.length; i += 1) {
                     for (j = 0; j < classes.length; j += 1) {
                         el[i].classList.add(classes[j]);
@@ -1028,11 +1038,15 @@
         },
 
         cleanupTags: function (el, tags) {
-            tags.forEach(function (tag) {
-                if (el.nodeName.toLowerCase() === tag) {
-                    el.parentNode.removeChild(el);
-                }
-            });
+            if (tags.indexOf(el.nodeName.toLowerCase()) !== -1) {
+                el.parentNode.removeChild(el);
+            }
+        },
+
+        unwrapTags: function (el, tags) {
+            if (tags.indexOf(el.nodeName.toLowerCase()) !== -1) {
+                MediumEditor.util.unwrap(el, document);
+            }
         },
 
         // get the closest parent
