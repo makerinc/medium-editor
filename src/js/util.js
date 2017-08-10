@@ -509,7 +509,8 @@
         execFormatBlock: function (doc, tagName) {
             // Get the top level block element that contains the selection
             var element = MediumEditor.selection.getSelectionStart(doc),
-                blockContainer = Util.getTopBlockContainer(element),
+                blockContainer = Util.getClosestBlockContainer(element),
+                topBlockContainer = Util.getTopBlockContainer(element),
                 childNodes;
 
             // Special handling for blockquote
@@ -538,6 +539,7 @@
             // treat it as 'undo' formatting and just convert it to a <p>
             if (
                 (blockContainer && tagName === blockContainer.nodeName.toLowerCase()) ||
+                (topBlockContainer && tagName === topBlockContainer.nodeName.toLowerCase()) ||
                 (element && tagName === element.nodeName.toLowerCase())
             ) {
                 tagName = 'p';

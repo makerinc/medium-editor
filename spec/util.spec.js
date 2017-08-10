@@ -378,13 +378,13 @@ describe('MediumEditor.util', function () {
 
     describe('execFormatBlock', function () {
         it('should execute indent command when called with blockquote when selection is inside a nested block element within a blockquote', function () {
-            var el = this.createElement('div', '', '<blockquote><p>Some <b>Text</b></p></blockquote>');
+            var el = this.createElement('div', '', '<blockquote><span>Some <b>Text</b></span></blockquote>');
             el.setAttribute('contenteditable', true);
             selectElementContents(el.querySelector('b'));
             spyOn(document, 'execCommand');
 
             MediumEditor.util.execFormatBlock(document, 'blockquote');
-            expect(document.execCommand).toHaveBeenCalledWith('outdent', false, null);
+            expect(document.execCommand).toHaveBeenCalledWith('formatBlock', false, 'p');
         });
 
         it('should execute indent command when called with blockquote when isIE is true', function () {
