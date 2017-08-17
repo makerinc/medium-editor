@@ -250,7 +250,7 @@ describe('MediumEditor.selection TestCase', function () {
         });
 
         it('should import a position with the cursor after an empty block element when there are nested block elements', function () {
-            this.el.innerHTML = '<blockquote><p><span>www.google.com</span></p></blockquote><h1><br /></h1><h2><br /></h2><p>Whatever</p>';
+            this.el.innerHTML = '<p><span>www.google.com</span></p><h1><br /></h1><h2><br /></h2><p>Whatever</p>';
             MediumEditor.selection.importSelection({
                 'start': 14,
                 'end': 14,

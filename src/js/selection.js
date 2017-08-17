@@ -1,8 +1,8 @@
 (function () {
     'use strict';
 
-    function filterOnlyParentElements(node) {
-        if (MediumEditor.util.isBlockContainer(node)) {
+    function filterOnlyParentElements(node, root) {
+        if ((MediumEditor.util.isBlockContainer(node) || node.nodeName.toLowerCase() === 'div') && node.parentNode === root) {
             return NodeFilter.FILTER_ACCEPT;
         } else {
             return NodeFilter.FILTER_SKIP;
@@ -252,7 +252,9 @@
         // Uses the emptyBlocksIndex calculated by getIndexRelativeToAdjacentEmptyBlocks
         // to move the cursor back to the start of the correct paragraph
         importSelectionMoveCursorPastBlocks: function (doc, root, index, range) {
-            var treeWalker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, filterOnlyParentElements, false),
+            var treeWalker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, function (node) {
+                    return filterOnlyParentElements(node, root);
+                }, false),
                 startContainer = range.startContainer,
                 startBlock,
                 targetNode,
@@ -337,7 +339,9 @@
             // Walk over block elements, counting number of empty blocks between last piece of text
             // and the block the cursor is in
             var closestBlock = MediumEditor.util.getClosestBlockContainer(cursorContainer),
-                treeWalker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, filterOnlyParentElements, false),
+                treeWalker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, function (node) {
+                    return filterOnlyParentElements(node, root);
+                }, false),
                 emptyBlocksCount = 0;
             while (treeWalker.nextNode()) {
                 var blockIsEmpty = treeWalker.currentNode.textContent === '';
