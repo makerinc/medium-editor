@@ -544,6 +544,9 @@ MediumEditor.extensions = {};
             Util.moveTextRangeIntoElement(textNodes[0], textNodes[textNodes.length - 1], anchor);
             anchor.setAttribute('href', href);
             if (target) {
+                if (target === '_blank') {
+                    anchor.setAttribute('rel', 'noopener noreferrer');
+                }
                 anchor.setAttribute('target', target);
             }
             return anchor;
@@ -995,12 +998,14 @@ MediumEditor.extensions = {};
             var i, url = anchorUrl || false;
             if (el.nodeName.toLowerCase() === 'a') {
                 el.target = '_blank';
+                el.rel = 'noopener noreferrer';
             } else {
                 el = el.getElementsByTagName('a');
 
                 for (i = 0; i < el.length; i += 1) {
                     if (false === url || url === el[i].attributes.href.value) {
                         el[i].target = '_blank';
+                        el[i].rel = 'noopener noreferrer';
                     }
                 }
             }
@@ -1014,12 +1019,14 @@ MediumEditor.extensions = {};
             var i;
             if (el.nodeName.toLowerCase() === 'a') {
                 el.removeAttribute('target');
+                el.removeAttribute('rel');
             } else {
                 el = el.getElementsByTagName('a');
 
                 for (i = 0; i < el.length; i += 1) {
                     if (anchorUrl === el[i].attributes.href.value) {
                         el[i].removeAttribute('target');
+                        el[i].removeAttribute('rel');
                     }
                 }
             }
@@ -2505,7 +2512,7 @@ MediumEditor.extensions = {};
                 win = this.base.options.contentWindow,
                 doc = this.base.options.ownerDocument;
 
-            if (targets !== null) {
+            if (targets) {
                 targets = MediumEditor.util.isElement(targets) || [win, doc].indexOf(targets) > -1 ? [targets] : targets;
 
                 Array.prototype.forEach.call(targets, function (target) {
@@ -5440,8 +5447,10 @@ MediumEditor.extensions = {};
                 // on empty line, rects is empty so we grab information from the first container of the range
                 if (rects.length) {
                     top += rects[0].top;
-                } else {
+                } else if (range.startContainer.getBoundingClientRect !== undefined) {
                     top += range.startContainer.getBoundingClientRect().top;
+                } else {
+                    top += range.getBoundingClientRect().top;
                 }
             }
 
@@ -6945,7 +6954,7 @@ MediumEditor.extensions = {};
         for (var i = 0, n = atts.length; i < n; i++) {
             // do not re-create existing attributes
             if (!div.hasAttribute(atts[i].nodeName)) {
-                div.setAttribute(atts[i].nodeName, atts[i].nodeValue);
+                div.setAttribute(atts[i].nodeName, atts[i].value);
             }
         }
 
@@ -7888,7 +7897,7 @@ MediumEditor.parseVersionString = function (release) {
 
 MediumEditor.version = MediumEditor.parseVersionString.call(this, ({
     // grunt-bump looks for this:
-    'version': '5.23.1'
+    'version': '5.23.2'
 }).version);
 
     return MediumEditor;
