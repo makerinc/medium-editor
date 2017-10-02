@@ -6422,9 +6422,13 @@ MediumEditor.extensions = {};
                 // If there's a nested image, use that for the bounding rectangle
                 if (range.startContainer.nodeType === 1 && range.startContainer.querySelector('img')) {
                     boundary = range.startContainer.querySelector('img').getBoundingClientRect();
-                } else {
+                } else if (typeof (range.startContainer || {}).getBoundingClientRect === 'function') {
                     boundary = range.startContainer.getBoundingClientRect();
                 }
+            }
+
+            if (!boundary) {
+                return;
             }
 
             var containerWidth = this.window.innerWidth,
