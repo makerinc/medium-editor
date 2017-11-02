@@ -5356,7 +5356,7 @@ MediumEditor.extensions = {};
             }
 
             if (!(this.getEditorOption('disableReturn') || (editable && editable.getAttribute('data-disable-return')))) {
-                paragraphs = pastedPlain.split(/[\r\n]+/g);
+                paragraphs = (pastedPlain || '').split(/[\r\n]+/g);
                 // If there are no \r\n in data, don't wrap in <p>
                 if (paragraphs.length > 1) {
                     for (p = 0; p < paragraphs.length; p += 1) {
