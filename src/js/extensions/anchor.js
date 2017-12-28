@@ -59,8 +59,8 @@
 
             var range = MediumEditor.selection.getSelectionRange(this.document);
 
-            if (range.startContainer.nodeName.toLowerCase() === 'a' ||
-                range.endContainer.nodeName.toLowerCase() === 'a' ||
+            if ((((range || {}).startContainer || {}).nodeName || '').toLowerCase() === 'a' ||
+                (((range || {}).endContainer || {}).nodeName || '').toLowerCase() === 'a' ||
                 MediumEditor.util.getClosestTag(MediumEditor.selection.getSelectedParentElement(range), 'a')) {
                 return this.execAction('unlink');
             }
