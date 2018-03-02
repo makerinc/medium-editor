@@ -541,7 +541,7 @@ MediumEditor.extensions = {};
 
         blockContainerElementNames: [
             // elements our editor generates
-            'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'ul', 'li', 'ol',
+            'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'ul', 'li', 'ol',
             // all other known block elements
             'address', 'article', 'aside', 'audio', 'canvas', 'dd', 'dl', 'dt', 'fieldset',
             'figcaption', 'figure', 'footer', 'form', 'header', 'hgroup', 'main', 'nav',
@@ -1372,7 +1372,9 @@ MediumEditor.extensions = {};
         },
 
         isBlockContainer: function (element) {
-            return element && element.nodeType !== 3 && Util.blockContainerElementNames.indexOf(element.nodeName.toLowerCase()) !== -1;
+            return element && element.nodeType !== 3 &&
+                Util.blockContainerElementNames.indexOf(element.nodeName.toLowerCase()) !== -1 &&
+                !Util.isMediumEditorElement(element);
         },
 
         /* Finds the closest ancestor which is a block container element
@@ -1383,6 +1385,18 @@ MediumEditor.extensions = {};
             return Util.traverseUp(node, function (node) {
                 return Util.isBlockContainer(node) || Util.isMediumEditorElement(node);
             });
+        },
+
+        getClosestEditable: function (node) {
+            if (!node) {
+                return null;
+            }
+
+            if (node.nodeType === 3) {
+                node = node.parentElement;
+            }
+
+            return node.closest('[contenteditable="true"], ul, ol');
         },
 
         /* Finds highest level ancestor element which is a block container element
@@ -1807,7 +1821,7 @@ MediumEditor.extensions = {};
     'use strict';
 
     function filterOnlyParentElements(node, root) {
-        if ((MediumEditor.util.isBlockContainer(node) || node.nodeName.toLowerCase() === 'div') && node.parentNode === root) {
+        if (MediumEditor.util.isBlockContainer(node) && node.parentNode === root) {
             return NodeFilter.FILTER_ACCEPT;
         } else {
             return NodeFilter.FILTER_SKIP;
@@ -1914,7 +1928,8 @@ MediumEditor.extensions = {};
                 stop = false,
                 nextCharIndex,
                 allowRangeToStartAtEndOfNode = false,
-                lastTextNode = null;
+                lastTextNode = null,
+                startedAtEndOfNode = false;
 
             // When importing selection, the start of the selection may lie at the end of an element
             // or at the beginning of an element.  Since visually there is no difference between these 2
@@ -1950,6 +1965,7 @@ MediumEditor.extensions = {};
                         if (allowRangeToStartAtEndOfNode || selectionState.start < nextCharIndex) {
                             range.setStart(node, selectionState.start - charIndex);
                             foundStart = true;
+                            startedAtEndOfNode = true;
                         }
                         // We're at the end of a text node where the selection could start but we shouldn't
                         // make the selection start here because allowRangeToStartAtEndOfNode is false.
@@ -2007,6 +2023,14 @@ MediumEditor.extensions = {};
             if (!foundStart && lastTextNode) {
                 range.setStart(lastTextNode, lastTextNode.length);
                 range.setEnd(lastTextNode, lastTextNode.length);
+            }
+
+            if (
+                startedAtEndOfNode &&
+                MediumEditor.util.getClosestEditable(range.startContainer) !== MediumEditor.util.getClosestEditable(range.endContainer)
+            ) {
+                range.setStart(range.endContainer, 0);
+                selectionState.emptyBlocksIndex = undefined;
             }
 
             if (typeof selectionState.emptyBlocksIndex !== 'undefined') {
@@ -2075,7 +2099,7 @@ MediumEditor.extensions = {};
                 startBlock = MediumEditor.util.getClosestBlockContainer(startContainer);
             }
 
-            parent = startBlock.closest('[contenteditable="true"], ul, ol') || root;
+            parent = MediumEditor.util.getClosestEditable(startContainer) || root;
             treeWalker = doc.createTreeWalker(parent, NodeFilter.SHOW_ELEMENT, function (node) {
                 return filterOnlyParentElements(node, parent);
             }, false);
@@ -2148,7 +2172,7 @@ MediumEditor.extensions = {};
             // Walk over block elements, counting number of empty blocks between last piece of text
             // and the block the cursor is in
             var closestBlock = MediumEditor.util.getClosestBlockContainer(cursorContainer),
-                parent = closestBlock.closest('[contenteditable="true"], ul, ol') || root,
+                parent = MediumEditor.util.getClosestEditable(cursorContainer) || root,
                 treeWalker = doc.createTreeWalker(parent, NodeFilter.SHOW_ELEMENT, function (node) {
                     return filterOnlyParentElements(node, parent);
                 }, false),

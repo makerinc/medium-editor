@@ -561,6 +561,33 @@ describe('MediumEditor.util', function () {
         });
     });
 
+    describe('getClosestEditable', function () {
+        it('should return null if no argument is provided', function () {
+            expect(MediumEditor.util.getClosestEditable()).toBe(null);
+        });
+
+        it('should return closest contenteditable', function () {
+            var el = this.createElement('div', '', '<div contenteditable="true"><p><span></span></p></div>'),
+                span = el.querySelector('span'),
+                container = MediumEditor.util.getClosestEditable(span);
+            expect(container).toBe(el.querySelector('[contenteditable]'));
+        });
+
+        it('should return closest ul', function () {
+            var el = this.createElement('div', '', '<div contenteditable="true"><ul><li><span></span></li></ul></div>'),
+                span = el.querySelector('span'),
+                container = MediumEditor.util.getClosestEditable(span);
+            expect(container).toBe(el.querySelector('ul'));
+        });
+
+        it('should return closest contenteditable even if called with text element', function () {
+            var el = this.createElement('div', '', '<div contenteditable="true"><p><span> </span></p></div>'),
+                emptyTextNode = el.querySelector('span').firstChild,
+                container = MediumEditor.util.getClosestEditable(emptyTextNode);
+            expect(container).toBe(el.querySelector('[contenteditable]'));
+        });
+    });
+
     describe('getClosestBlockContainer', function () {
         it('should return the closest block container', function () {
             var el = this.createElement('div', '', '<blockquote><p>paragraph</p><ul><li><span>list item</span></li></ul></blockquote>'),
@@ -580,7 +607,7 @@ describe('MediumEditor.util', function () {
 
     describe('getTopBlockContainer', function () {
         it('should return the highest level block container', function () {
-            var el = this.createElement('div', '', '<blockquote><p>paragraph</p><ul><li><span>list item</span></li></ul></blockquote>'),
+            var el = this.createElement('span', '', '<blockquote><p>paragraph</p><ul><li><span>list item</span></li></ul></blockquote>'),
                 span = el.querySelector('span'),
                 container = MediumEditor.util.getTopBlockContainer(span);
             expect(container).toBe(el.querySelector('blockquote'));

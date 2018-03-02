@@ -2,7 +2,7 @@
     'use strict';
 
     function filterOnlyParentElements(node, root) {
-        if ((MediumEditor.util.isBlockContainer(node) || node.nodeName.toLowerCase() === 'div') && node.parentNode === root) {
+        if (MediumEditor.util.isBlockContainer(node) && node.parentNode === root) {
             return NodeFilter.FILTER_ACCEPT;
         } else {
             return NodeFilter.FILTER_SKIP;
@@ -109,7 +109,8 @@
                 stop = false,
                 nextCharIndex,
                 allowRangeToStartAtEndOfNode = false,
-                lastTextNode = null;
+                lastTextNode = null,
+                startedAtEndOfNode = false;
 
             // When importing selection, the start of the selection may lie at the end of an element
             // or at the beginning of an element.  Since visually there is no difference between these 2
@@ -145,6 +146,7 @@
                         if (allowRangeToStartAtEndOfNode || selectionState.start < nextCharIndex) {
                             range.setStart(node, selectionState.start - charIndex);
                             foundStart = true;
+                            startedAtEndOfNode = true;
                         }
                         // We're at the end of a text node where the selection could start but we shouldn't
                         // make the selection start here because allowRangeToStartAtEndOfNode is false.
@@ -202,6 +204,14 @@
             if (!foundStart && lastTextNode) {
                 range.setStart(lastTextNode, lastTextNode.length);
                 range.setEnd(lastTextNode, lastTextNode.length);
+            }
+
+            if (
+                startedAtEndOfNode &&
+                MediumEditor.util.getClosestEditable(range.startContainer) !== MediumEditor.util.getClosestEditable(range.endContainer)
+            ) {
+                range.setStart(range.endContainer, 0);
+                selectionState.emptyBlocksIndex = undefined;
             }
 
             if (typeof selectionState.emptyBlocksIndex !== 'undefined') {
@@ -270,7 +280,7 @@
                 startBlock = MediumEditor.util.getClosestBlockContainer(startContainer);
             }
 
-            parent = startBlock.closest('[contenteditable="true"], ul, ol') || root;
+            parent = MediumEditor.util.getClosestEditable(startContainer) || root;
             treeWalker = doc.createTreeWalker(parent, NodeFilter.SHOW_ELEMENT, function (node) {
                 return filterOnlyParentElements(node, parent);
             }, false);
@@ -343,7 +353,7 @@
             // Walk over block elements, counting number of empty blocks between last piece of text
             // and the block the cursor is in
             var closestBlock = MediumEditor.util.getClosestBlockContainer(cursorContainer),
-                parent = closestBlock.closest('[contenteditable="true"], ul, ol') || root,
+                parent = MediumEditor.util.getClosestEditable(cursorContainer) || root,
                 treeWalker = doc.createTreeWalker(parent, NodeFilter.SHOW_ELEMENT, function (node) {
                     return filterOnlyParentElements(node, parent);
                 }, false),

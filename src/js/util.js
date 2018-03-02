@@ -108,7 +108,7 @@
 
         blockContainerElementNames: [
             // elements our editor generates
-            'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'ul', 'li', 'ol',
+            'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'ul', 'li', 'ol',
             // all other known block elements
             'address', 'article', 'aside', 'audio', 'canvas', 'dd', 'dl', 'dt', 'fieldset',
             'figcaption', 'figure', 'footer', 'form', 'header', 'hgroup', 'main', 'nav',
@@ -939,7 +939,9 @@
         },
 
         isBlockContainer: function (element) {
-            return element && element.nodeType !== 3 && Util.blockContainerElementNames.indexOf(element.nodeName.toLowerCase()) !== -1;
+            return element && element.nodeType !== 3 &&
+                Util.blockContainerElementNames.indexOf(element.nodeName.toLowerCase()) !== -1 &&
+                !Util.isMediumEditorElement(element);
         },
 
         /* Finds the closest ancestor which is a block container element
@@ -950,6 +952,18 @@
             return Util.traverseUp(node, function (node) {
                 return Util.isBlockContainer(node) || Util.isMediumEditorElement(node);
             });
+        },
+
+        getClosestEditable: function (node) {
+            if (!node) {
+                return null;
+            }
+
+            if (node.nodeType === 3) {
+                node = node.parentElement;
+            }
+
+            return node.closest('[contenteditable="true"], ul, ol');
         },
 
         /* Finds highest level ancestor element which is a block container element
