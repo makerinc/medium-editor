@@ -252,12 +252,11 @@
         // Uses the emptyBlocksIndex calculated by getIndexRelativeToAdjacentEmptyBlocks
         // to move the cursor back to the start of the correct paragraph
         importSelectionMoveCursorPastBlocks: function (doc, root, index, range) {
-            var treeWalker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, function (node) {
-                    return filterOnlyParentElements(node, root);
-                }, false),
-                startContainer = range.startContainer,
+            var startContainer = range.startContainer,
                 startBlock,
                 targetNode,
+                parent,
+                treeWalker,
                 currIndex = 0;
             index = index || 1; // If index is 0, we still want to move to the next block
 
@@ -270,6 +269,11 @@
             } else {
                 startBlock = MediumEditor.util.getClosestBlockContainer(startContainer);
             }
+
+            parent = startBlock.closest('[contenteditable="true"], ul, ol') || root;
+            treeWalker = doc.createTreeWalker(parent, NodeFilter.SHOW_ELEMENT, function (node) {
+                return filterOnlyParentElements(node, parent);
+            }, false);
 
             // Skip over empty blocks until we hit the block we want the selection to be in
             while (treeWalker.nextNode()) {
@@ -339,8 +343,9 @@
             // Walk over block elements, counting number of empty blocks between last piece of text
             // and the block the cursor is in
             var closestBlock = MediumEditor.util.getClosestBlockContainer(cursorContainer),
-                treeWalker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, function (node) {
-                    return filterOnlyParentElements(node, root);
+                parent = closestBlock.closest('[contenteditable="true"], ul, ol') || root,
+                treeWalker = doc.createTreeWalker(parent, NodeFilter.SHOW_ELEMENT, function (node) {
+                    return filterOnlyParentElements(node, parent);
                 }, false),
                 emptyBlocksCount = 0;
             while (treeWalker.nextNode()) {

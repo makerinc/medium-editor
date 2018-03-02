@@ -391,3 +391,30 @@ if (!("classList" in document.createElement("_"))) {
   };
   view.Blob.prototype = getPrototypeOf(new view.Blob());
 }(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content || this));
+
+// https://github.com/jonathantneal/closest/blob/master/element-closest.js
+(function (ElementProto) {
+    if (typeof ElementProto.matches !== 'function') {
+        ElementProto.matches = ElementProto.msMatchesSelector || ElementProto.mozMatchesSelector || ElementProto.webkitMatchesSelector || function matches(selector) {
+            var element = this,
+                elements = (element.document || element.ownerDocument).querySelectorAll(selector),
+                index = 0;
+            while (elements[index] && elements[index] !== element) {
+                ++index;
+            }
+            return Boolean(elements[index]);
+        };
+    }
+    if (typeof ElementProto.closest !== 'function') {
+        ElementProto.closest = function closest(selector) {
+            var element = this;
+            while (element && element.nodeType === 1) {
+                if (element.matches(selector)) {
+                    return element;
+                }
+                element = element.parentNode;
+            }
+            return null;
+        };
+    }
+})(window.Element.prototype);

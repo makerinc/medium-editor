@@ -383,6 +383,33 @@ if (!("classList" in document.createElement("_"))) {
   view.Blob.prototype = getPrototypeOf(new view.Blob());
 }(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content || this));
 
+// https://github.com/jonathantneal/closest/blob/master/element-closest.js
+(function (ElementProto) {
+    if (typeof ElementProto.matches !== 'function') {
+        ElementProto.matches = ElementProto.msMatchesSelector || ElementProto.mozMatchesSelector || ElementProto.webkitMatchesSelector || function matches(selector) {
+            var element = this,
+                elements = (element.document || element.ownerDocument).querySelectorAll(selector),
+                index = 0;
+            while (elements[index] && elements[index] !== element) {
+                ++index;
+            }
+            return Boolean(elements[index]);
+        };
+    }
+    if (typeof ElementProto.closest !== 'function') {
+        ElementProto.closest = function closest(selector) {
+            var element = this;
+            while (element && element.nodeType === 1) {
+                if (element.matches(selector)) {
+                    return element;
+                }
+                element = element.parentNode;
+            }
+            return null;
+        };
+    }
+})(window.Element.prototype);
+
 (function (root, factory) {
     'use strict';
     var isElectron = typeof module === 'object' && typeof process !== 'undefined' && process && process.versions && process.versions.electron;
@@ -2030,12 +2057,11 @@ MediumEditor.extensions = {};
         // Uses the emptyBlocksIndex calculated by getIndexRelativeToAdjacentEmptyBlocks
         // to move the cursor back to the start of the correct paragraph
         importSelectionMoveCursorPastBlocks: function (doc, root, index, range) {
-            var treeWalker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, function (node) {
-                    return filterOnlyParentElements(node, root);
-                }, false),
-                startContainer = range.startContainer,
+            var startContainer = range.startContainer,
                 startBlock,
                 targetNode,
+                parent,
+                treeWalker,
                 currIndex = 0;
             index = index || 1; // If index is 0, we still want to move to the next block
 
@@ -2048,6 +2074,11 @@ MediumEditor.extensions = {};
             } else {
                 startBlock = MediumEditor.util.getClosestBlockContainer(startContainer);
             }
+
+            parent = startBlock.closest('[contenteditable="true"], ul, ol') || root;
+            treeWalker = doc.createTreeWalker(parent, NodeFilter.SHOW_ELEMENT, function (node) {
+                return filterOnlyParentElements(node, parent);
+            }, false);
 
             // Skip over empty blocks until we hit the block we want the selection to be in
             while (treeWalker.nextNode()) {
@@ -2117,8 +2148,9 @@ MediumEditor.extensions = {};
             // Walk over block elements, counting number of empty blocks between last piece of text
             // and the block the cursor is in
             var closestBlock = MediumEditor.util.getClosestBlockContainer(cursorContainer),
-                treeWalker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, function (node) {
-                    return filterOnlyParentElements(node, root);
+                parent = closestBlock.closest('[contenteditable="true"], ul, ol') || root,
+                treeWalker = doc.createTreeWalker(parent, NodeFilter.SHOW_ELEMENT, function (node) {
+                    return filterOnlyParentElements(node, parent);
                 }, false),
                 emptyBlocksCount = 0;
             while (treeWalker.nextNode()) {
