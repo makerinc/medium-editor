@@ -6820,7 +6820,7 @@ MediumEditor.extensions = {};
             // For anchor tags, unlink
             if (tagName === 'a') {
                 this.options.ownerDocument.execCommand('unlink', false, null);
-            } else if (!event.shiftKey && !event.ctrlKey) {
+            } else if (!node.closest('p') && !event.shiftKey && !event.ctrlKey) {
                 this.options.ownerDocument.execCommand('formatBlock', false, 'p');
             }
         }

@@ -339,7 +339,7 @@ describe('Content TestCase', function () {
         });
 
         it('should call formatBlock when inside a non-header and non-anchor', function () {
-            this.el.innerHTML = '<p>lorem <span>ipsum</span></p>';
+            this.el.innerHTML = '<span>lorem <span>ipsum</span></span>';
             var editor = this.newMediumEditor('.editor'),
                 targetNode = editor.elements[0].querySelector('span').firstChild;
             spyOn(document, 'execCommand').and.callThrough();
