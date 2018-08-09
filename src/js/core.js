@@ -63,13 +63,13 @@
         tagName = node.nodeName.toLowerCase();
 
         if (MediumEditor.util.isKey(event, [MediumEditor.util.keyCode.BACKSPACE, MediumEditor.util.keyCode.ENTER]) &&
-                // has a preceeding sibling
-                node.previousElementSibling &&
                 // in a header
                 isHeader.test(tagName) &&
                 // at the very end of the block
                 MediumEditor.selection.getCaretOffsets(node).left === 0) {
-            if (MediumEditor.util.isKey(event, MediumEditor.util.keyCode.BACKSPACE) && isEmpty.test(node.previousElementSibling.innerHTML)) {
+            if (MediumEditor.util.isKey(event, MediumEditor.util.keyCode.BACKSPACE) &&
+                isEmpty.test(node.previousElementSibling.innerHTML &&
+                node.previousElementSibling)) {
                 // backspacing the begining of a header into an empty previous element will
                 // change the tagName of the current node to prevent one
                 // instead delete previous node and cancel the event.
@@ -80,7 +80,7 @@
                 // instead, make "<p><br></p>" element, which are what happens if you hit return in an empty paragraph
                 p = this.options.ownerDocument.createElement('p');
                 p.innerHTML = '<br>';
-                node.previousElementSibling.parentNode.insertBefore(p, node);
+                node.parentNode.insertBefore(p, node);
                 event.preventDefault();
             }
         } else if (MediumEditor.util.isKey(event, MediumEditor.util.keyCode.DELETE) &&
