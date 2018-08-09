@@ -963,7 +963,7 @@
                 node = node.parentElement;
             }
 
-            return node.closest('[contenteditable="true"], ul, ol');
+            return node.closest('[contenteditable="true"]');
         },
 
         /* Finds highest level ancestor element which is a block container element
