@@ -44,11 +44,18 @@
             if (selection.rangeCount > 0) {
                 var range = selection.getRangeAt(0),
                     preSelectionRange = range.cloneRange(),
-                    start;
+                    start = 0,
+                    clone;
 
                 preSelectionRange.selectNodeContents(root);
                 preSelectionRange.setEnd(range.startContainer, range.startOffset);
-                start = preSelectionRange.toString().length;
+
+                clone = preSelectionRange.cloneContents();
+                Array.prototype.forEach.call(clone.childNodes, function (el) {
+                    if (el.tagName !== 'SCRIPT') {
+                        start += el.textContent.length;
+                    }
+                });
 
                 selectionState = {
                     start: start,
@@ -131,7 +138,7 @@
 
             while (!stop && node) {
                 // Only iterate over elements and text nodes
-                if (node.nodeType > 3) {
+                if (node.nodeType > 3 || node.tagName === 'SCRIPT') {
                     node = nodeStack.pop();
                     continue;
                 }
