@@ -68,8 +68,7 @@
                 // at the very end of the block
                 MediumEditor.selection.getCaretOffsets(node).left === 0) {
             if (MediumEditor.util.isKey(event, MediumEditor.util.keyCode.BACKSPACE) &&
-                isEmpty.test(node.previousElementSibling.innerHTML &&
-                node.previousElementSibling)) {
+                isEmpty.test(node.previousElementSibling && node.previousElementSibling.innerHTML)) {
                 // backspacing the begining of a header into an empty previous element will
                 // change the tagName of the current node to prevent one
                 // instead delete previous node and cancel the event.
