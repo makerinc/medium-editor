@@ -1863,18 +1863,20 @@ MediumEditor.extensions = {};
             if (selection.rangeCount > 0) {
                 var range = selection.getRangeAt(0),
                     preSelectionRange = range.cloneRange(),
-                    start = 0,
-                    clone;
+                    preSelectionHTML,
+                    start;
 
                 preSelectionRange.selectNodeContents(root);
                 preSelectionRange.setEnd(range.startContainer, range.startOffset);
+                preSelectionHTML = preSelectionRange.toString();
 
-                clone = preSelectionRange.cloneContents();
-                Array.prototype.forEach.call(clone.childNodes, function (el) {
-                    if (el.tagName !== 'SCRIPT') {
-                        start += el.textContent.length;
-                    }
+                Array.prototype.filter.call(root.querySelectorAll('script'), function (script) {
+                    return script.innerText.trim();
+                }).forEach(function (script) {
+                    preSelectionHTML = preSelectionHTML.replace(script.innerText, '');
                 });
+
+                start = preSelectionHTML.length;
 
                 selectionState = {
                     start: start,
