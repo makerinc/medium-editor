@@ -226,7 +226,7 @@
         },
 
         completeFormSave: function (opts) {
-            this.base.restoreSelection();
+            this.restoreSelection();
             this.execAction(this.action, opts);
             this.base.checkSelection();
         },
@@ -288,8 +288,15 @@
                 (fragment === undefined ? '' : '#' + fragment);
         },
 
-        doFormCancel: function () {
+        restoreSelection: function () {
+            if (this.base.selectionState && 'emptyBlocksIndex' in this.base.selectionState) {
+                delete this.base.selectionState.emptyBlocksIndex;
+            }
             this.base.restoreSelection();
+        },
+
+        doFormCancel: function () {
+            this.restoreSelection();
             this.base.checkSelection();
         },
 
